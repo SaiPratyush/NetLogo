@@ -39,12 +39,12 @@ class OpenModelTests extends FunSuite {
     assert((format.interfaceComponent.serialize(new Model)) ===
       Array("GRAPHICS-WINDOW", "0", "0", "5", "5", "-1", "-1", "12.0",
         "1", "13", "1", "1", "1", "0", "1", "1", "1", "0", "0", "0",
-        "0", "0", "1", "1", "ticks", "30.0", ""))
+        "0", "1", "1", "1", "ticks", "30.0", ""))
     assert(format.interfaceComponent.serialize(new Model(widgets =
       List(View(dimensions = new WorldDimensions(0,0,0,0,12.0,true,true))))) ===
       Array("GRAPHICS-WINDOW", "0", "0", "5", "5", "-1", "-1", "12.0",
         "1", "13", "1", "1", "1", "0", "1", "1", "1", "0", "0", "0",
-        "0", "0", "1", "1", "ticks", "30.0", ""))
+        "0", "1", "1", "1", "ticks", "30.0", ""))
     assert(format.interfaceComponent.serialize(new Model(widgets =
       List(View(dimensions = new WorldDimensions3D(0,0,0,0,0,0,12.0,true,true))))) ===
       Array("GRAPHICS-WINDOW", "0", "0", "5", "5", "-1", "-1", "12.0",

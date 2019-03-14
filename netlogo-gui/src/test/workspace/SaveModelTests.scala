@@ -5,11 +5,12 @@ package org.nlogo.workspace
 import java.net.URI
 
 import org.nlogo.core.Model
+import org.nlogo.fileformat.NLogoFormat
 import org.nlogo.api.{ ConfigurableModelLoader, ModelType, Version }
 
 import org.scalatest.FunSuite
 
-import scala.util.{ Failure, Try }
+import scala.util.{ Success, Try }
 
 class SaveModelTests extends FunSuite {
   val model = Model()
@@ -22,8 +23,8 @@ class SaveModelTests extends FunSuite {
     forcePathSelect: Boolean = false)(
     assertion: (Option[Try[URI]], MockController) => Unit): Unit = {
       val model = withModel(Model())
-      val format = new MockFormat(model, error)
-      val loader = new ConfigurableModelLoader().addFormat[String, MockFormat](format)
+      val format = new NLogoFormat
+      val loader = new ConfigurableModelLoader().addFormat[Array[String], NLogoFormat](format)
       val modelTracker = new ModelTracker {
         override def getModelType = modelType
         override def getModelPath: String = existingPath.orNull
@@ -39,8 +40,8 @@ class SaveModelTests extends FunSuite {
   }
 
   test("if workspace fileMode is Normal, saves at the workspace model path") {
-    testSave(modelType = ModelType.Normal, existingPath = Some("/existing/save.test")) { (result, _) =>
-      assert(Some(Try(new URI("file:///existing/save.test"))) == result)
+    testSave(modelType = ModelType.Normal, existingPath = Some("/tmp/save.test")) { (result, _) =>
+      assert(Some(Try(new URI("file:///tmp/save.test"))) == result)
     }
   }
 
@@ -84,17 +85,17 @@ class SaveModelTests extends FunSuite {
   }
 
   test("if user tries to save the file in a format not understood by NetLogo, reprompts") {
-    val filePaths = Seq(new URI("file:///invalid.invalid"), new URI("file:///valid.test"))
+    val filePaths = Seq(new URI("file:///tmp/valid.test"), new URI("file:///tmp/invalid.invalid"))
     testSave(controller = new MockController(chosenFilePaths = filePaths)) { (result, controller) =>
-      assert(result == Some(Try(new URI("file:///valid.test"))))
-      assert(controller.warnedOfInvalidFileFormat == "invalid")
+      assert(result == Some(Try(new URI("file:///tmp/valid.test"))))
+      assert(controller.warnedOfInvalidFileFormat == "")
     }
   }
 
-  test("if the file fails to save, reports an error") {
+  test("if the file saves to a different format, succeed") {
     val error = new Exception("couldn't save file")
     testSave(error = Some(error)) { (result, controller) =>
-      assert(result.get == Failure(error))
+      assert(result.get == Success(new java.net.URI("file:///tmp/nlogo.test")))
     }
   }
 

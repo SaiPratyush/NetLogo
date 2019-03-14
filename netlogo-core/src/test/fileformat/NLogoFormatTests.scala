@@ -156,9 +156,9 @@ class VersionComponentTest extends NLogoFormatTest[String] {
   val correctArityFormat = Version.version.replaceAll(" 3D", "")
   val wrongArityVersion = Version.version.replaceAll("NetLogo", "NetLogo 3D")
 
-  testErrorsOnDeserialization("wrong arity", Array[String](wrongArityVersion), wrongArityVersion)
   testErrorsOnDeserialization("empty version section to empty version", Array[String](), "")
   // up to the other components to error if they detect a problem
+  testDeserializes("wrong arity", Array[String](wrongArityVersion), wrongArityVersion)
   testDeserializes("unknown version", Array[String]("NetLogo 4D 8.9"), "NetLogo 4D 8.9")
   testDeserializes("multiple version lines to correct version", Array[String]("", correctArityFormat), correctArityFormat)
 }
