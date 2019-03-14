@@ -131,7 +131,7 @@ object ThreeDViewReader extends WidgetReader with BaseWidgetParser with ConstWid
         threeD
       }
       else {
-        threeDFields = Seq("0") // continuous update
+        threeDFields = Seq("1") // tick-based update
         t.dimensions.asInstanceOf[WorldDimensions]
       }
     (Seq(
