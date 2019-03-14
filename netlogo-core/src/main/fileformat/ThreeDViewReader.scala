@@ -3,7 +3,7 @@
 package org.nlogo.fileformat
 
 import org.nlogo.api.WorldDimensions3D
-import org.nlogo.core.{ UpdateMode, View }
+import org.nlogo.core.{ UpdateMode, View, WorldDimensions }
 import org.nlogo.core.model.WidgetReader
 
 import org.parboiled2._
@@ -120,8 +120,21 @@ object ThreeDViewReader extends WidgetReader with BaseWidgetParser with ConstWid
     new ThreeDParser(s)
 
   def format(t: View): String = {
-    val dimensions = t.dimensions.asInstanceOf[WorldDimensions3D]
-    Seq(
+    var threeDFields : Seq[String] = Seq()
+    val dimensions =
+      if(t.dimensions.isInstanceOf[WorldDimensions3D]){
+        val threeD = t.dimensions.asInstanceOf[WorldDimensions3D]
+        threeDFields = Seq(
+          threeD.minPzcor.toString,
+          threeD.maxPzcor.toString,
+          if (threeD.wrappingAllowedInZ) "1" else "0")
+        threeD
+      }
+      else {
+        threeDFields = Seq("0") // continuous update
+        t.dimensions.asInstanceOf[WorldDimensions]
+      }
+    (Seq(
       "GRAPHICS-WINDOW",
       t.left.toString,
       t.top.toString,
@@ -142,13 +155,11 @@ object ThreeDViewReader extends WidgetReader with BaseWidgetParser with ConstWid
       t.minPxcor.toString,
       t.maxPxcor.toString,
       t.minPycor.toString,
-      t.maxPycor.toString,
-      dimensions.minPzcor.toString,
-      dimensions.maxPzcor.toString,
-      if (dimensions.wrappingAllowedInZ) "1" else "0",
+      t.maxPycor.toString) ++ threeDFields ++
+      Seq(
       t.updateMode.save.toString,
       if (t.showTickCounter) "1" else "0",
       t.tickCounterLabel.getOrElse("NIL"),
-      t.frameRate).mkString("", "\n", "\n")
+      t.frameRate)).mkString("", "\n", "\n")
   }
 }

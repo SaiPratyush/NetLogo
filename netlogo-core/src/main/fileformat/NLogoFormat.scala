@@ -6,9 +6,9 @@ import java.net.URI
 import java.nio.file.{ Files, Paths }
 
 import org.nlogo.core.{ Femto, I18N, LiteralParser, Model, ShapeParser,
-  UpdateMode, View, Widget, WorldDimensions }
+  UpdateMode, View, Widget }
 import org.nlogo.core.model.WidgetReader
-import org.nlogo.api.{ ComponentSerialization, FileIO, ModelFormat, Version, VersionHistory }
+import org.nlogo.api.{ ComponentSerialization, FileIO, ModelFormat, Version, VersionHistory, WorldDimensions3D }
 import scala.util.{ Failure, Success, Try }
 import scala.io.{ Codec, Source }, Codec.UTF8
 
@@ -16,20 +16,21 @@ import scala.io.{ Codec, Source }, Codec.UTF8
 class NLogoFormat
   extends ModelFormat[Array[String], NLogoFormat]
   with AbstractNLogoFormat[NLogoFormat] {
-    val is3DFormat = false
     def name: String = "nlogo"
+    def widgetThreeDReaders =
+        Map[String, WidgetReader]("GRAPHICS-WINDOW" -> ThreeDViewReader)
     def widgetReaders: Map[String, WidgetReader] = Map()
 }
 
 class NLogoFormatException(m: String) extends RuntimeException(m)
 
 trait AbstractNLogoFormat[A <: ModelFormat[Array[String], A]] extends ModelFormat[Array[String], A] {
-  def is3DFormat: Boolean
   def name: String
   val Separator = "@#$#@#$#@"
   val SeparatorRegex = "(?m)^@#\\$#@#\\$#@$"
 
   def widgetReaders: Map[String, WidgetReader]
+  def widgetThreeDReaders: Map[String, WidgetReader]
 
   def sections(location: URI) =
     Try {
@@ -145,8 +146,7 @@ trait AbstractNLogoFormat[A <: ModelFormat[Array[String], A]] extends ModelForma
     def validationErrors(m: Model): Option[String] = None
     override def deserialize(s: Array[String]) = {(m: Model) =>
       val versionString = s.mkString.trim
-      if (versionString.startsWith("NetLogo") &&
-        Version.is3D(versionString) == is3DFormat)
+      if (versionString.startsWith("NetLogo"))
         Success(m.copy(version = versionString))
       else {
         val errorString =
@@ -157,17 +157,18 @@ trait AbstractNLogoFormat[A <: ModelFormat[Array[String], A]] extends ModelForma
   }
 
   lazy val defaultView: View = View(left = 210, top = 10, right = 649, bottom = 470,
-    dimensions = WorldDimensions(-16, 16, -16, 16, 13.0), fontSize = 10, updateMode = UpdateMode.Continuous,
-    showTickCounter = true, frameRate = 30)
+    dimensions = new WorldDimensions3D(-16, 16, -16, 16, -16, 16, 13.0), fontSize = 10, updateMode =
+      UpdateMode.Continuous, showTickCounter = true, frameRate = 30)
 
   object InterfaceComponent extends ComponentSerialization[Array[String], A] {
     val componentName = "org.nlogo.modelsection.interface"
-    private val additionalReaders = AbstractNLogoFormat.this.widgetReaders
     private val literalParser = Femto.scalaSingleton[LiteralParser]("org.nlogo.parse.CompilerUtilities")
     override def addDefault = _.copy(widgets = Seq(defaultView))
 
     def serialize(m: Model): Array[String] =
-      m.widgets.flatMap((w: Widget) => (WidgetReader.format(w, additionalReaders).lines.toSeq :+ "")).toArray
+      m.widgets.flatMap((w: Widget) => 
+          (WidgetReader.format(w, AbstractNLogoFormat.this.widgetThreeDReaders).lines.toSeq :+ ""))
+          .toArray
 
     def validationErrors(m: Model): Option[String] = None
 
@@ -190,7 +191,8 @@ trait AbstractNLogoFormat[A <: ModelFormat[Array[String], A]] extends ModelForma
     override def deserialize(s: Array[String]) = {(m: Model) =>
       Try {
         val widgets = parseWidgets(s)
-        m.copy(widgets = widgets.map(w => WidgetReader.read(w.toList, literalParser, additionalReaders)))
+        m.copy(widgets = widgets.map(w => 
+            WidgetReader.read(w.toList, literalParser, widgetThreeDReaders)))
       }
     }
   }

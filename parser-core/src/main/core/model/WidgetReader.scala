@@ -124,20 +124,22 @@ object WidgetReader {
     readers.find(_.validate(lines)) match {
       case Some(reader) => reader.parse(lines, parser).convertSource(conversion)
       case None =>
-        throw new RuntimeException(
-          s"Couldn't find corresponding reader for ${lines.head}")
+        defaultReaders.values.find(_.validate(lines)) match {
+          case Some(reader) => reader.parse(lines, parser).convertSource(conversion)
+          case None =>
+            throw new RuntimeException(
+              s"Couldn't find corresponding reader for ${lines.head}")
+        }
     }
   }
 
-  def format(widget: Widget, additionalReaders: Map[String, WidgetReader] = Map()): String = {
-    (defaultReaders ++ additionalReaders)
-      .values
-      .flatMap(r => r.classTag.unapply(widget).map(w => r.format(w)))
-      .headOption
-      .getOrElse(
-        throw new UnsupportedOperationException("Widget type is not supported: " + widget.getClass.getName)
-      )
-   }
+  def format(widget: Widget, additionalReaders: Map[String, WidgetReader] = Map()): String =
+      (defaultReaders ++ additionalReaders)
+        .values
+        .flatMap(r => r.classTag.unapply(widget).map(w => r.format(w)))
+        .headOption
+        .getOrElse(
+          throw new UnsupportedOperationException("Widget type is not supported: " + widget.getClass.getName))
 
   def readInterface(lines: List[String], parser: LiteralParser,
     additionalReaders: Map[String, WidgetReader] = Map(),
