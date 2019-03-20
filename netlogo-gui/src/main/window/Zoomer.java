@@ -9,12 +9,27 @@ package org.nlogo.window;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.prefs.Preferences;
 
 public strictfp class Zoomer {
 
   private final java.awt.Container container;
+  private static Preferences systemNode = Preferences.userNodeForPackage(Zoomer.class);
+  public static double getZoom() { 
+    return systemNode.getDouble("zoom", 1.0); 
+  } 
+ 
+  private static void updateZoom(double value) { 
+    systemNode.putDouble("zoom", value); 
+  } 
+  public static int getSteps(){
+    return systemNode.getInt("steps", 0);
+  }
+  private static void updateSteps(int steps){
+    systemNode.putInt("steps", steps);
+  }
 
-  private double zoomFactor = 1.0;
+  private double zoomFactor = getZoom();
 
   public double zoomFactor() {
     return zoomFactor;
@@ -43,6 +58,7 @@ public strictfp class Zoomer {
     container.setVisible(false);
     double oldZoom = zoomFactor;
     zoomFactor = newZoom;
+    updateZoom(zoomFactor);
     java.awt.Component[] comps = container.getComponents();
     for (int i = 0; i < comps.length; i++) {
       if (comps[i] instanceof WidgetWrapperInterface) {
@@ -158,6 +174,7 @@ public strictfp class Zoomer {
 
   public void scaleComponentFont(java.awt.Component component, double newZoom, double oldZoom,
                                  boolean recursive) {
+    updateSteps((int)((newZoom - 1.0)/0.1));
     if (fonts.get(component) == null) {
       storeComponentFont(component, recursive, false, false, oldZoom);
     }

@@ -5,7 +5,7 @@ package org.nlogo.window
 trait Zoomable extends javax.swing.JComponent
 with Events.ZoomedEvent.Handler {
   val zoomer = new Zoomer(this)
-  private var _zoomSteps = 0
+  private var _zoomSteps = Zoomer.getSteps()
   def zoomSteps = _zoomSteps
   def zoomMin: Int = -9
   def zoomFactor = 1.0 + 0.1 * zoomSteps
