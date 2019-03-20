@@ -18,6 +18,7 @@ import javax.swing.text.EditorKit
 import javax.swing.KeyStroke.getKeyStroke
 import javax.swing.{JDialog, AbstractAction, ScrollPaneConstants, JScrollPane, JButton, JLabel}
 import javax.swing.plaf.basic.BasicButtonUI
+import java.util.prefs.Preferences
 
 object InputBox {
   val MinWidth  = 50
@@ -82,11 +83,17 @@ abstract class InputBox(textArea:AbstractEditorArea, editDialogTextArea:Abstract
   protected def inputText(input: Object) {
     if (input != null) valueObject(input, true)
   }
-
+  object Prefs {
+      private val prefs = Preferences.userNodeForPackage(InputBox.this.getClass)
+      def multiline = prefs.getBoolean("multiline", false)
+      def updateBool(multiOptions: Boolean ): Unit = {
+        prefs.putBoolean("multiline", multiOptions)
+      }
+    }
   // multiline property
   protected var multiline = false
   def multiline(multiline: Boolean) {
-    this.multiline = multiline
+    this.multiline = Prefs.multiline
     changeButton.setVisible(inputType.changeVisible)
     editing = false
 
@@ -95,6 +102,8 @@ abstract class InputBox(textArea:AbstractEditorArea, editDialogTextArea:Abstract
     textArea.getInputMap.put(getKeyStroke(KeyEvent.VK_ESCAPE, 0), new CancelAction())
     textArea.getInputMap.put(getKeyStroke(KeyEvent.VK_ENTER, 0),
       if(multiline) null else new TransferFocusAction())
+    val multiOptions = multiline
+    Prefs.updateBool(multiOptions)
     textArea.getInputMap.put(getKeyStroke(KeyEvent.VK_TAB, 0), new TransferFocusAction())
   }
 
