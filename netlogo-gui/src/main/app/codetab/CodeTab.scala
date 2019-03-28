@@ -18,6 +18,7 @@ import org.nlogo.swing.Utils.icon
 import org.nlogo.swing.{PrinterManager, ToolBar, ToolBarActionButton, UserAction, WrappedAction, Printable => NlogoPrintable}
 import org.nlogo.window.{EditorAreaErrorLabel, ProceduresInterface, Zoomable, Events => WindowEvents}
 import org.nlogo.workspace.AbstractWorkspace
+import java.util.prefs.Preferences
 
 abstract class CodeTab(val workspace: AbstractWorkspace, tabs: TabsInterface) extends JPanel
 with ProceduresInterface
@@ -39,7 +40,13 @@ with MenuTab {
   private lazy val listener = new TextListener {
     override def textValueChanged(e: TextEvent) = dirty = true
   }
-
+  object Prefs {
+    private val prefs = Preferences.userNodeForPackage(CodeTab.this.getClass)
+    def fontSize = prefs.getDouble("font", 1.0)
+    def updateFrom(fontSize: Double): Unit = {
+      prefs.putDouble("font", fontSize)
+    }
+  }
   lazy val editorFactory = new EditorFactory(workspace, workspace.getExtensionManager)
 
   def editorConfiguration =
@@ -144,10 +151,11 @@ with MenuTab {
     if (originalFontSize == -1)
       originalFontSize = text.getFont.getSize
     text.setFont(text.getFont.deriveFont(StrictMath.ceil(originalFontSize * zoomFactor).toFloat))
+    Prefs.updateFrom(zoomFactor)
     scrollableEditor.setFont(text.getFont)
     errorLabel.zoom(zoomFactor)
   }
-
+  text.setFont(text.getFont.deriveFont(StrictMath.ceil(text.getFont.getSize * Prefs.fontSize).toFloat))
   def handle(e: WindowEvents.CompiledEvent) = {
     dirty = false
     if (e.sourceOwner == this) errorLabel.setError(e.error, headerSource.length)

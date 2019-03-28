@@ -58,7 +58,7 @@ class OutputArea(val text: JTextArea) extends javax.swing.JPanel {
     text.getFont.getSize
 
   def fontSize(fontSize: Int): Unit = {
-    text.setFont(new Font(NLogoFonts.platformMonospacedFont, Font.PLAIN, fontSize))
+    text.setFont(new Font(NLogoFonts.platformMonospacedFont, Font.PLAIN, fontSize*(Zoomer.getZoom().toInt)))
   }
 
   def clear(): Unit = {

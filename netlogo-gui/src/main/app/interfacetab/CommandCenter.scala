@@ -13,7 +13,7 @@ import org.nlogo.awt.{ Fonts, Hierarchy, UserCancelException }
 import org.nlogo.core.{ AgentKind, I18N }
 import org.nlogo.swing.{ FileDialog => SwingFileDialog, ModalProgressTask, RichAction }
 import org.nlogo.window.{ CommandCenterInterface, Events => WindowEvents,
-  InterfaceColors, OutputArea, TextMenuActions, Zoomable }
+  InterfaceColors, OutputArea, TextMenuActions, Zoomable, Zoomer }
 import org.nlogo.workspace.{ AbstractWorkspace, ExportOutput }
 
 class CommandCenter(workspace: AbstractWorkspace) extends JPanel
@@ -53,7 +53,7 @@ class CommandCenter(workspace: AbstractWorkspace) extends JPanel
 
     val clearButton = new JButton(RichAction(I18N.gui.get("tabs.run.commandcenter.clearButton")) { _ => output.clear() }) {
       setFocusable(false)
-      setFont(new Font(Fonts.platformFont, Font.PLAIN, 9))
+      setFont(new Font(Fonts.platformFont, Font.PLAIN, 9*(Zoomer.getZoom().toInt)))
 
       override def getPreferredSize: Dimension = {
         val ps = super.getPreferredSize
@@ -74,7 +74,7 @@ class CommandCenter(workspace: AbstractWorkspace) extends JPanel
     northPanel.add(titleLabel)
     northPanel.add(Box.createGlue)
     Fonts.adjustDefaultFont(titleLabel)
-    titleLabel.setFont(titleLabel.getFont.deriveFont(Font.BOLD))
+    titleLabel.setFont(titleLabel.getFont.deriveFont(Font.BOLD,18*(Zoomer.getZoom().toInt)))
     northPanel.add(locationToggleButton)
     northPanel.add(clearButton)
     resizeNorthPanel()

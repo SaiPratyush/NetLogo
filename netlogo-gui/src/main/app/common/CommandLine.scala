@@ -11,7 +11,7 @@ import org.nlogo.core.{AgentKind, CompilerException, I18N, Widget => CoreWidget}
 import org.nlogo.editor.EditorField
 import org.nlogo.ide.{AutoSuggestAction, CodeCompletionPopup}
 import org.nlogo.workspace.AbstractWorkspace
-import org.nlogo.window.{CommandCenterInterface, EditorColorizer, JobWidget, Events => WindowEvents}
+import org.nlogo.window.{CommandCenterInterface, EditorColorizer, JobWidget,Zoomer, Events => WindowEvents}
 
 import scala.collection.immutable.List
 
@@ -61,7 +61,7 @@ class CommandLine(commandCenter: CommandCenterInterface,
 
   agentKind(AgentKind.Observer)
 
-  textField.setFont(textField.getFont().deriveFont(fontSize.toFloat))
+  textField.setFont(textField.getFont().deriveFont(fontSize*(Zoomer.getZoom().toFloat)))
   textField.addKeyListener(this)
 
   setLayout(new BorderLayout)
